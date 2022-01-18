@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.sample_quarkus_heroku;
+package io.github.oliviercailloux.jquestions;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;

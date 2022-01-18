@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.sample_quarkus_heroku;
+package io.github.oliviercailloux.jquestions;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
