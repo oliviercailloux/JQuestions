@@ -1,0 +1,10 @@
+.project
+.classpath
+.settings/
+target/
+out.log
+
+.env
+
+Local notes.adoc
+

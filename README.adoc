@@ -1,0 +1,23 @@
+= JQuestions
+:groupId: io.github.oliviercailloux
+:artifactId: jquestions
+:repository: JQuestions
+
+A JAX-RS server configured by https://quarkus.io/[Quarkus], based on https://github.com/oliviercailloux/Sample-Quarkus-Heroku[this sample], with JPA with Hibernate, CDI… Ready to be deployed to Heroku.
+
+To deploy to Heroku, simply follow their https://devcenter.heroku.com/articles/getting-started-with-java[tutorial], replacing their example application with this one: instead of `git clone \https://github.com/heroku/java-getting-started`, type `git clone \https://github.com/oliviercailloux/{repository}.git`.
+
+== Local configuration file
+To develop and test your application locally, create a file named `.env` and set the following properties.
+
+----
+quarkus.http.port = 8080
+quarkus.datasource.username = …
+quarkus.datasource.password = …
+quarkus.datasource.jdbc.url = jdbc:postgresql://….compute.amazonaws.com:…/…
+quarkus.log.file.enable = true
+quarkus.log.file.level = DEBUG
+----
+
+You will find the credentials and URL of your datasource using the Heroku GUI or CLI, as indicated in their tutorial.
+
