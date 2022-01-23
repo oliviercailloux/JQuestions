@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 @Entity
 @UserDefinition
 @NamedQuery(name = "getBase64User", query = "SELECT u FROM User u WHERE u.usernameUtf8ThenBase64Encoded = :username")
+@NamedQuery(name = "getStudents", query = "SELECT u FROM User u WHERE u.role = " + User.STUDENT_ROLE)
 public class User {
 	public static final String ADMIN_ROLE = "Admin";
 

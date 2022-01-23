@@ -44,10 +44,21 @@ public class ExamResource {
 	@GET
 	@RolesAllowed({ User.ADMIN_ROLE, User.STUDENT_ROLE })
 	@Path("/list")
-	@Consumes({ MediaType.TEXT_PLAIN })
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Transactional
-	public ImmutableSet<Integer> getList() {
+	public ImmutableSet<Integer> getQuestionIds() {
 		return examService.getExamFor(current);
+	}
+
+	/**
+	 * Should think about this registration fct.
+	 */
+	@GET
+	@PermitAll
+//	@Path("/students")
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Transactional
+	public ImmutableSet<User> getStudents() {
+		return examService.getStudents();
 	}
 }

@@ -2,8 +2,10 @@ package io.github.oliviercailloux.jquestions;
 
 import static com.google.common.base.Verify.verify;
 
+import com.google.common.collect.ImmutableSet;
 import io.github.oliviercailloux.jquestions.entities.User;
 import io.github.oliviercailloux.wutils.Utf8StringAsBase64Sequence;
+import java.util.List;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -46,6 +48,12 @@ public class UserService {
 	@Transactional
 	public void persist(User user) {
 		em.persist(user);
+	}
+
+	public ImmutableSet<User> getStudents() {
+		final TypedQuery<User> q = em.createNamedQuery("getStudents", User.class);
+		final List<User> result = q.getResultList();
+		return ImmutableSet.copyOf(result);
 	}
 
 }

@@ -39,7 +39,7 @@ public class ExamTests {
 				.buildPost(Entity.entity("no ¬ username", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
 			assertEquals(Response.Status.OK.getStatusCode(), res.getStatus());
 			final String password = res.readEntity(String.class);
-			assertTrue(password.length() >= ExamService.MINIMAL_PASSWORD_LENGTH);
+			assertTrue(password.length() >= ExamService.PASSWORD_CODE_POINTS);
 		}
 		try (Response res = client.target(target).request()
 				.buildPost(Entity.entity("no ¬ username", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
