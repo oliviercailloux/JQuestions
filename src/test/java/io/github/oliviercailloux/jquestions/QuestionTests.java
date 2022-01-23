@@ -37,7 +37,7 @@ public class QuestionTests {
 		final Client client = ClientBuilder.newClient();
 		final String response = client.target(target).register(new Authenticator("Admin", "adm"))
 				.request(MediaType.APPLICATION_XHTML_XML).buildGet().invoke(String.class);
-//		assertTrue(q1AsciiDoc.contains(". First claim"));
 		LOGGER.info("Received Xhtml: {}.", response);
+		assertTrue(response.contains("<!DOCTYPE html>"));
 	}
 }

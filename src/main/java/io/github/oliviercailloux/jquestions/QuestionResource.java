@@ -4,7 +4,6 @@ import io.github.oliviercailloux.jquestions.entities.User;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,7 +26,6 @@ public class QuestionResource {
 	@GET
 	@RolesAllowed({ User.ADMIN_ROLE, User.STUDENT_ROLE })
 	@Path("/phrasing/{id}")
-	@Consumes({ MediaType.TEXT_PLAIN })
 	@Produces({ "text/asciidoc" })
 	@Transactional
 	public String getPhrasingAsciiDoc(@PathParam("id") int id) {
@@ -37,7 +35,6 @@ public class QuestionResource {
 	@GET
 	@RolesAllowed({ User.ADMIN_ROLE, User.STUDENT_ROLE })
 	@Path("/phrasing/{id}")
-	@Consumes({ MediaType.TEXT_PLAIN })
 	@Produces({ MediaType.APPLICATION_XHTML_XML })
 	@Transactional
 	public String getPhrasingXhtml(@PathParam("id") int id) {

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.IntStream;
 import javax.xml.transform.stream.StreamSource;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Options;
@@ -56,8 +57,8 @@ public class QuestionConverter {
 //				DocBookHelper.TO_XHTML_STYLESHEET);
 //				localSource);
 		NO_IO.call(() -> Files.writeString(Path.of("q1.html"), phrasingXhtml));
-		final Document phrasingDoc = DomHelper.domHelper()
-				.asDocument(new StreamSource(new StringReader(phrasingXhtml)));
+		final DomHelper domHelper = DomHelper.domHelper();
+		final Document phrasingDoc = domHelper.asDocument(new StreamSource(new StringReader(phrasingXhtml)));
 		final ImmutableList<Node> level0 = DomHelper.toList(phrasingDoc.getChildNodes());
 		checkArgument(level0.size() == 2);
 		final Node docType = level0.get(0);
@@ -78,8 +79,19 @@ public class QuestionConverter {
 		final Element section = inBody.get(0);
 		LOGGER.info("Name reached: {}.", section.getNodeName());
 		checkArgument(section.getNodeName().equals("section"));
+		final ImmutableList<Element> liElements = DomHelper
+				.toElements(section.getElementsByTagNameNS(DomHelper.XHTML_NS_URI.toString(), "li"));
 
-		return phrasingXhtml;
+		IntStream.range(1, liElements.size() + 1).forEach(i -> liElements.get(i - 1)
+				.insertBefore(newCheckbox(phrasingDoc, i), liElements.get(i - 1).getFirstChild()));
+		return domHelper.toString(phrasingDoc);
+	}
+
+	private Element newCheckbox(final Document document, final int claimNumber) {
+		final Element checkboxElement = document.createElementNS(DomHelper.XHTML_NS_URI.toString(), "input");
+		checkboxElement.setAttribute("type", "checkbox");
+		checkboxElement.setAttribute("id", "claim-" + claimNumber);
+		return checkboxElement;
 	}
 
 }
