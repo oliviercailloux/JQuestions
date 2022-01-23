@@ -1,0 +1,7 @@
+Check the true claims.
+
+. [true-claim] First claim
+. Second claim
+. [true-claim] Third claim
+
+End of the question. Please proceed calmly to the exit area.
