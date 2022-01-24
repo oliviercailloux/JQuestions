@@ -55,7 +55,7 @@ public class QuestionParser {
 				.collect(ImmutableList.toImmutableList());
 		checkArgument(claimItems.stream().allMatch(ListItem::hasText));
 
-		final ImmutableSet<Integer> trueClaims = IntStream.range(1, claimItems.size())
+		final ImmutableSet<Integer> trueClaims = IntStream.range(1, claimItems.size() + 1)
 				.filter(i -> claimItems.get(i - 1).getText().startsWith(TRUE_CLAIM_MARK)).boxed()
 				.collect(ImmutableSet.toImmutableSet());
 

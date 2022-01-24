@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,13 @@ public class UserService {
 
 	@Inject
 	EntityManager em;
+
+	public User getCurrent(SecurityContext securityContext) {
+		final Utf8StringAsBase64Sequence base64Name = Utf8StringAsBase64Sequence
+				.fromUtf8StringAsBase64Sequence(securityContext.getUserPrincipal().getName());
+		final User current = get(base64Name);
+		return current;
+	}
 
 	@Transactional
 	public User get(String unencodedUsername) {

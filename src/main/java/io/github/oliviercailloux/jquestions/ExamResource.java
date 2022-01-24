@@ -1,7 +1,10 @@
 package io.github.oliviercailloux.jquestions;
 
 import com.google.common.collect.ImmutableSet;
+import io.github.oliviercailloux.jquestions.entities.Answer;
 import io.github.oliviercailloux.jquestions.entities.User;
+import java.util.Optional;
+import java.util.Set;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -10,9 +13,11 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +27,17 @@ public class ExamResource {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExamResource.class);
 
-	@Context
-	SecurityContext securityContext;
+	@Inject
+	UserService userService;
 
 	@Inject
 	ExamService examService;
 
-	@io.quarkus.security.User
-	User current;
+	@Inject
+	QuestionService questionService;
+
+	@Context
+	SecurityContext securityContext;
 
 	@POST
 	@PermitAll
@@ -47,7 +55,7 @@ public class ExamResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Transactional
 	public ImmutableSet<Integer> getQuestionIds() {
-		return examService.getExamFor(current);
+		return examService.getExamFor(null);
 	}
 
 	/**
@@ -60,5 +68,26 @@ public class ExamResource {
 	@Transactional
 	public ImmutableSet<User> getStudents() {
 		return examService.getStudents();
+	}
+
+	@POST
+	@RolesAllowed(User.STUDENT_ROLE)
+	@Path("/answer/{id}")
+	@Consumes({ MediaType.APPLICATION_JSON })
+	@Transactional
+	public void answer(@PathParam("id") int questionId, Set<Integer> adoptedClaims) {
+		final User current = userService.getCurrent(securityContext);
+		examService.answer(current, questionService.get(questionId), adoptedClaims);
+	}
+
+	@GET
+	@RolesAllowed({ User.ADMIN_ROLE, User.STUDENT_ROLE })
+	@Path("/answer/{id}")
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Transactional
+	public Response getAdoptedClaims(@PathParam("id") int questionId) {
+		final Optional<Answer> answer = examService.getAnswer(questionService.get(questionId),
+				userService.getCurrent(securityContext));
+		return answer.map(a -> Response.ok(a.getAdoptedClaims())).orElse(Response.noContent()).build();
 	}
 }

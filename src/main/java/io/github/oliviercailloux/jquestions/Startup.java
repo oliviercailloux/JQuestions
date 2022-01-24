@@ -5,7 +5,6 @@ import io.github.oliviercailloux.jquestions.entities.Question;
 import io.github.oliviercailloux.jquestions.entities.User;
 import io.quarkus.runtime.StartupEvent;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -36,10 +35,12 @@ public class Startup {
 		LOGGER.info("Loading at startup, considering {}.", evt);
 
 		userService.persist(new User("Admin", "adm", User.ADMIN_ROLE));
+		userService.persist(new User("Student-test", "test", User.STUDENT_ROLE));
 
-		final URL q1Url = getClass().getResource("q1.adoc");
-		final String q1ADoc = Resources.toString(q1Url, StandardCharsets.UTF_8);
+		final String q1ADoc = Resources.toString(getClass().getResource("q1.adoc"), StandardCharsets.UTF_8);
 		final Question question = questionParser.parse(q1ADoc);
 		questionService.persist(question);
+		final Question q2 = questionParser.parse(q1ADoc);
+		questionService.persist(q2);
 	}
 }

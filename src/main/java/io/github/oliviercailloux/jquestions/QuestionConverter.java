@@ -5,13 +5,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import io.github.oliviercailloux.jaris.xml.DomHelper;
-import io.github.oliviercailloux.jaris.xml.XmlName;
 import io.github.oliviercailloux.publish.DocBookHelper;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
@@ -43,15 +43,21 @@ public class QuestionConverter {
 	public String toXhtml(String phrasingAsciiDoc) {
 		final String phrasingDocBook = asciidoctor.convert(phrasingAsciiDoc,
 				Options.builder().headerFooter(true).backend("docbook").build());
+		LOGGER.info("Generated DocBook: {}.", phrasingDocBook);
 		LOGGER.info("Validating DocBook.");
 		final DocBookHelper helper = DocBookHelper.usingDefaultFactory();
 		NO_IO.call(() -> helper.verifyValid(new StreamSource(new StringReader(phrasingDocBook))));
 		LOGGER.info("Converting DocBook.");
-		final StreamSource localSource = new StreamSource(
-				"file:///usr/share/xml/docbook/stylesheet/docbook-xsl-ns/xhtml5/docbook.xsl");
+//		final StreamSource localSource = new StreamSource(
+//				"file:///usr/share/xml/docbook/stylesheet/docbook-xsl-ns/xhtml5/docbook.xsl");
+		final String myStyle;
+		try {
+			myStyle = Resources.toString(getClass().getResource("xhtml own.xsl"), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new VerifyException(e);
+		}
 		final StreamSource phrasingDocBookSource = new StreamSource(new StringReader(phrasingDocBook));
-		final String phrasingXhtml = helper
-				.getDocBookTransformer(localSource, ImmutableMap.of(XmlName.localName("docbook.css.source"), ""))
+		final String phrasingXhtml = helper.getDocBookTransformer(new StreamSource(new StringReader(myStyle)))
 				.transform(phrasingDocBookSource);
 //		final String phrasingXhtml = helper.docBookTo(phrasingDocBookSource,
 //				DocBookHelper.TO_XHTML_STYLESHEET);

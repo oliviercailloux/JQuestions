@@ -3,12 +3,18 @@ package io.github.oliviercailloux.jquestions;
 import static com.google.common.base.Verify.verify;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.MoreCollectors;
 import com.google.common.primitives.SignedBytes;
+import io.github.oliviercailloux.jquestions.entities.Answer;
+import io.github.oliviercailloux.jquestions.entities.Question;
 import io.github.oliviercailloux.jquestions.entities.User;
 import java.text.BreakIterator;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -85,6 +91,28 @@ public class ExamService {
 
 	public ImmutableSet<User> getStudents() {
 		return userService.getStudents();
+	}
+
+	@Transactional
+	public void answer(User student, Question question, Set<Integer> adoptedClaims) {
+		final Answer newAnswer = new Answer(student, question, adoptedClaims);
+		final Optional<Answer> current = getAnswer(question, student);
+//		LOGGER.info(current.map(a -> "Replacing").orElse("Storing") + " answer from {} to {}.", current, question);
+		current.ifPresent(em::remove);
+		/*
+		 * https://jira.spring.io/si/jira.issueviews:issue-html/DATAJPA-727/DATAJPA-727.
+		 * html, https://stackoverflow.com/questions/18853146/insert-after-delete-same-
+		 * transaction-in-spring-data-jpa
+		 */
+		current.ifPresent(a -> em.flush());
+		em.persist(newAnswer);
+	}
+
+	public Optional<Answer> getAnswer(Question question, User student) {
+		final List<Answer> answers = em.createNamedQuery("getFromStudentAndQuestion", Answer.class)
+				.setParameter("student", student).setParameter("question", question).getResultList();
+		verify(answers.size() <= 1, answers.toString());
+		return answers.stream().collect(MoreCollectors.toOptional());
 	}
 
 }
