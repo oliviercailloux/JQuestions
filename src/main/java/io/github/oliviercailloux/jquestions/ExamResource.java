@@ -5,7 +5,6 @@ import io.github.oliviercailloux.jquestions.entities.Answer;
 import io.github.oliviercailloux.jquestions.entities.User;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -15,6 +14,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -22,7 +22,7 @@ import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/exam")
+@Path("/exam/{examId}")
 public class ExamResource {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExamResource.class);
@@ -39,30 +39,41 @@ public class ExamResource {
 	@Context
 	SecurityContext securityContext;
 
+	@PathParam("examId")
+	int examId;
+
 	@POST
-	@PermitAll
-	@Path("/connect")
-	@Consumes({ MediaType.TEXT_PLAIN })
-	@Produces({ MediaType.TEXT_PLAIN })
+	@RolesAllowed(User.STUDENT_ROLE)
+	@Path("/register")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.TEXT_PLAIN)
 	@Transactional
-	public String connectStudent(String username) {
-		return examService.connectStudent(username);
+	public String registerStudent(String examPassword) {
+		final User current = userService.getCurrent(securityContext);
+		return examService.registerStudent(current, examId, examPassword);
 	}
 
+	/**
+	 * NOT @Consumes(MediaType.TEXT_PLAIN) with password in body: it is unclear
+	 * whether HTTP accepts this, and fetch API forbids it.
+	 * https://github.com/whatwg/fetch/issues/83.
+	 */
 	@GET
 	@RolesAllowed({ User.ADMIN_ROLE, User.STUDENT_ROLE })
 	@Path("/list")
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Transactional
-	public ImmutableSet<Integer> getQuestionIds() {
-		return examService.getExamFor(null);
+	public ImmutableSet<Integer> getQuestionIds(@QueryParam("personal") String personalPassword) {
+		LOGGER.debug("Got request to list, with password {}.", personalPassword);
+		final User current = userService.getCurrent(securityContext);
+		return examService.getQuestionIdsFor(examId, current, personalPassword);
 	}
 
 	/**
 	 * Should think about this registration fct.
 	 */
 	@GET
-	@PermitAll
+	@RolesAllowed(User.ADMIN_ROLE)
 //	@Path("/students")
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Transactional

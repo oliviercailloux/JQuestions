@@ -43,6 +43,7 @@ public class QuestionService {
 	@Transactional
 	public void persist(Question question) {
 		em.persist(question);
+		LOGGER.info("Persisted {}.", question);
 	}
 
 	public String getAsXhtml(String phrasingAsciiDoc) {

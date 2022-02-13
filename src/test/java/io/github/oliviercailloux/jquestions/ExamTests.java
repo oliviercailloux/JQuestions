@@ -34,31 +34,39 @@ public class ExamTests {
 	URI serverUri;
 
 	@Test
-	public void testConnect() {
+	public void testRegister() {
 		final Client client = ClientBuilder.newClient();
-		final URI target = UriBuilder.fromUri(serverUri).path("/v0/exam/connect").build();
+		final URI target = UriBuilder.fromUri(serverUri).path("/v0/exam/1/register").build();
 
 		try (Response res = client.target(target).request()
 				.buildPost(Entity.entity("no ¬ username", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
+			assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), res.getStatus());
+		}
+		try (Response res = client.target(target).register(new Authenticator("a", "a")).request()
+				.buildPost(Entity.entity("wrong password", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
+			assertEquals(Response.Status.NOT_FOUND.getStatusCode(), res.getStatus());
+		}
+		try (Response res = client.target(target).register(new Authenticator("a", "a")).request()
+				.buildPost(Entity.entity("ep", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
 			assertEquals(Response.Status.OK.getStatusCode(), res.getStatus());
 			final String password = res.readEntity(String.class);
 			assertTrue(password.length() >= ExamService.PASSWORD_CODE_POINTS);
 		}
-		try (Response res = client.target(target).request()
-				.buildPost(Entity.entity("no ¬ username", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
+
+		try (Response res = client.target(target).register(new Authenticator("a", "a")).request()
+				.buildPost(Entity.entity("ep", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
 			assertEquals(Response.Status.CONFLICT.getStatusCode(), res.getStatus());
 		}
-		try (Response res = client.target(target).request()
-				.buildPost(Entity.entity("another username", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8")))
-				.invoke()) {
-			assertEquals(Response.Status.OK.getStatusCode(), res.getStatus());
+		try (Response res = client.target(target).register(new Authenticator("a", "a")).request()
+				.buildPost(Entity.entity("wrong password", MediaType.TEXT_PLAIN_TYPE.withCharset("UTF-8"))).invoke()) {
+			assertEquals(Response.Status.NOT_FOUND.getStatusCode(), res.getStatus());
 		}
 	}
 
 	@Test
 	void testList() throws Exception {
 		final Client client = ClientBuilder.newClient();
-		final URI target = UriBuilder.fromUri(serverUri).path("/v0/exam/list").build();
+		final URI target = UriBuilder.fromUri(serverUri).path("/v0/exam/1/list").build();
 
 		try (Response res = client.target(target).request().buildGet().invoke()) {
 			assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), res.getStatus());
@@ -75,7 +83,7 @@ public class ExamTests {
 			// final String answer = res.readEntity(String.class);
 			final List<Integer> questionIds = res.readEntity(new GenericType<List<Integer>>() {
 			});
-			assertEquals(1, questionIds.size());
+			assertEquals(2, questionIds.size());
 		}
 	}
 

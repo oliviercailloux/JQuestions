@@ -2,11 +2,15 @@ package io.github.oliviercailloux.jquestions;
 
 import static com.google.common.base.Verify.verify;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MoreCollectors;
 import com.google.common.primitives.SignedBytes;
 import io.github.oliviercailloux.jquestions.entities.Answer;
+import io.github.oliviercailloux.jquestions.entities.Exam;
+import io.github.oliviercailloux.jquestions.entities.ExamQuestion;
 import io.github.oliviercailloux.jquestions.entities.Question;
+import io.github.oliviercailloux.jquestions.entities.StudentRegistration;
 import io.github.oliviercailloux.jquestions.entities.User;
 import java.text.BreakIterator;
 import java.time.Instant;
@@ -40,15 +44,42 @@ public class ExamService {
 	QuestionService questionService;
 
 	@Transactional
-	public String connectStudent(String username) throws WebApplicationException {
-		if (userService.exists(username)) {
+	public Exam get(int id) {
+		return em.find(Exam.class, id);
+	}
+
+	@Transactional
+	public void persist(List<Question> questions, String password) {
+		final Exam exam = new Exam(password);
+
+		final ImmutableList<ExamQuestion> qs = questions.stream().map(q -> new ExamQuestion(q, exam))
+				.collect(ImmutableList.toImmutableList());
+		qs.stream().forEach(exam::addQuestion);
+
+		em.persist(exam);
+		qs.stream().forEach(em::persist);
+	}
+
+	@Transactional
+	public String registerStudent(User student, int examId, String examPassword) throws WebApplicationException {
+		final Exam exam = get(examId);
+		if (!exam.getPassword().equals(examPassword)) {
+			throw new WebApplicationException(Response.Status.NOT_FOUND);
+		}
+		final Set<User> registeredStudents = exam.getRegisteredStudents();
+		LOGGER.debug("Registered to {}: {}.", examId, registeredStudents);
+		if (registeredStudents.contains(student)) {
 			throw new WebApplicationException(Response.Status.CONFLICT);
 		}
+		LOGGER.debug("Student {} not contained.", student);
 
-		final String password = generatePassword();
-		final User student = new User(username, password, Instant.now());
-		em.persist(student);
-		return password;
+		final String personalPassword = generatePassword();
+		final StudentRegistration registration = new StudentRegistration(student, exam, personalPassword,
+				Instant.now());
+		exam.addStudent(registration);
+		em.persist(registration);
+		em.persist(exam);
+		return personalPassword;
 	}
 
 	private String generatePassword() {
@@ -85,8 +116,27 @@ public class ExamService {
 		return password;
 	}
 
-	public ImmutableSet<Integer> getExamFor(@SuppressWarnings("unused") User current) {
-		return questionService.getAllIds();
+	public ImmutableSet<Integer> getQuestionIdsFor(int examId, User current, String personalPassword)
+			throws WebApplicationException {
+		final Exam exam = get(examId);
+
+		if (!current.getRole().equals(User.ADMIN_ROLE)) {
+			final Set<User> registeredStudents = exam.getRegisteredStudents();
+			if (!registeredStudents.contains(current)) {
+				throw new WebApplicationException(Response.Status.CONFLICT);
+			}
+			final Optional<StudentRegistration> registrationOpt = exam.getRegistration(current);
+			final StudentRegistration registration = registrationOpt
+					.orElseThrow(() -> new WebApplicationException(Response.Status.NOT_FOUND));
+			if (!registration.getPersonalExamPassword().equals(personalPassword)) {
+				throw new WebApplicationException(Response.Status.NOT_FOUND);
+			}
+		}
+
+		final ImmutableSet<Integer> ids = exam.getQuestions().stream().map(Question::getId)
+				.collect(ImmutableSet.toImmutableSet());
+		LOGGER.info("Returning ids {}.", ids);
+		return ids;
 	}
 
 	public ImmutableSet<User> getStudents() {

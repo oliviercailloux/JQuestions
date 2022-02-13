@@ -12,6 +12,7 @@ import io.quarkus.security.jpa.Roles;
 import io.quarkus.security.jpa.UserDefinition;
 import io.quarkus.security.jpa.Username;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -92,6 +93,20 @@ public class User {
 
 	public Optional<Instant> getFirstPostTime() {
 		return Optional.ofNullable(firstPostTime);
+	}
+
+	@Override
+	public boolean equals(Object o2) {
+		if (!(o2 instanceof User)) {
+			return false;
+		}
+		final User t2 = (User) o2;
+		return id == t2.id;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 
 	@Override
