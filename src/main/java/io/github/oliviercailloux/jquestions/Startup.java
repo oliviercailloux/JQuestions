@@ -41,8 +41,6 @@ public class Startup {
 		userService.persist(new User("Admin", "adm", User.ADMIN_ROLE));
 		userService.persist(new User("Student-test", "test", User.STUDENT_ROLE));
 		userService.persist(new User("a", "a", User.STUDENT_ROLE));
-		userService.persist(new User("b", "b", User.STUDENT_ROLE));
-		userService.persist(new User("c", "c", User.STUDENT_ROLE));
 
 		final String q1ADoc = Resources.toString(getClass().getResource("q1.adoc"), StandardCharsets.UTF_8);
 		final Question question = questionParser.parse(q1ADoc);
