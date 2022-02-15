@@ -3,9 +3,11 @@ package io.github.oliviercailloux.jquestions;
 import static com.google.common.base.Verify.verify;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.MoreCollectors;
 import io.github.oliviercailloux.jquestions.entities.User;
 import io.github.oliviercailloux.wutils.Utf8StringAsBase64Sequence;
 import java.util.List;
+import java.util.Optional;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -26,19 +28,19 @@ public class UserService {
 	public User getCurrent(SecurityContext securityContext) {
 		final Utf8StringAsBase64Sequence base64Name = Utf8StringAsBase64Sequence
 				.fromUtf8StringAsBase64Sequence(securityContext.getUserPrincipal().getName());
-		final User current = get(base64Name);
+		final User current = get(base64Name).orElseThrow();
 		return current;
 	}
 
 	@Transactional
-	public User get(String unencodedUsername) {
+	public Optional<User> get(String unencodedUsername) {
 		final Utf8StringAsBase64Sequence base64 = Utf8StringAsBase64Sequence.asBase64Sequence(unencodedUsername);
 		LOGGER.info("Searching for unencoded {}, thus encoded {}.", unencodedUsername, base64);
 		return get(base64);
 	}
 
-	public User get(Utf8StringAsBase64Sequence base64Username) {
-		return getQuery(base64Username).getSingleResult();
+	public Optional<User> get(Utf8StringAsBase64Sequence base64Username) {
+		return getQuery(base64Username).getResultList().stream().collect(MoreCollectors.toOptional());
 	}
 
 	public boolean exists(String username) {

@@ -1,17 +1,23 @@
 package io.github.oliviercailloux.wutils;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verify;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A base64 sequence that decodes to a byte sequence that can be interpreted as
  * the UTF-8 encoding of a sequence of characters.
  */
 public class Utf8StringAsBase64Sequence extends Base64Sequence implements AsciiSequence {
+
+	@SuppressWarnings("unused")
+	private static final Logger LOGGER = LoggerFactory.getLogger(Utf8StringAsBase64Sequence.class);
 
 	public static Utf8StringAsBase64Sequence asBase64Sequence(CharSequence unencoded) {
 		return new Utf8StringAsBase64Sequence(unencoded, true);
@@ -31,6 +37,8 @@ public class Utf8StringAsBase64Sequence extends Base64Sequence implements AsciiS
 
 	private Utf8StringAsBase64Sequence(CharSequence unencoded, boolean nonEncoded) {
 		super(unencoded.toString().getBytes(StandardCharsets.UTF_8));
+		verify(unencoded.equals(decodeToString()));
+		LOGGER.debug("Encoded {} to {}.", unencoded, toString());
 		checkArgument(nonEncoded);
 	}
 

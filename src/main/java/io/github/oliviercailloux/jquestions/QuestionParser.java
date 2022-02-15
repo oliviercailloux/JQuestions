@@ -9,7 +9,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MoreCollectors;
 import io.github.oliviercailloux.jquestions.entities.Question;
 import java.util.List;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Options;
 import org.asciidoctor.ast.Document;
@@ -21,6 +25,9 @@ import org.slf4j.LoggerFactory;
 public class QuestionParser {
 	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LoggerFactory.getLogger(QuestionParser.class);
+
+	public static final Pattern SECTION_PATTERN = Pattern.compile("^== (?<title>.+)$\\v(?<content>(^[^=\\v].*$\\v*)*)",
+			Pattern.MULTILINE);
 
 	private static final String TRUE_CLAIM_MARK = "[true-claim] ";
 
@@ -34,7 +41,25 @@ public class QuestionParser {
 		this.asciidoctor = checkNotNull(asciidoctor);
 	}
 
-	public Question parse(String questionAsciiDoc) {
+	public ImmutableSet<Question> parseQuestions(String asciiDoc) {
+		final int nbQuestions;
+		{
+			final Document doc = asciidoctor.load(asciiDoc, Options.builder().build());
+			final List<StructuralNode> blocks = doc.getBlocks();
+			final ImmutableList<StructuralNode> level1Sections = blocks.stream()
+					.filter(b -> b.getContext().equals("section")).collect(ImmutableList.toImmutableList());
+			nbQuestions = level1Sections.size();
+		}
+
+		final Matcher matcher = QuestionParser.SECTION_PATTERN.matcher(asciiDoc);
+		final Stream<MatchResult> results = matcher.results();
+		final ImmutableSet<Question> questions = results.map(r -> r.group(2)).map(this::parseQuestion)
+				.collect(ImmutableSet.toImmutableSet());
+		verify(questions.size() == nbQuestions);
+		return questions;
+	}
+
+	public Question parseQuestion(String questionAsciiDoc) {
 		/* https://github.com/asciidoctor/asciidoctor/issues/2716 */
 		final Document doc = asciidoctor.load(questionAsciiDoc, Options.builder().build());
 

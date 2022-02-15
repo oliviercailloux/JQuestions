@@ -40,4 +40,5 @@ public class QuestionTests {
 		LOGGER.info("Received Xhtml: {}.", response);
 		assertTrue(response.contains("<!DOCTYPE html>"));
 	}
+
 }

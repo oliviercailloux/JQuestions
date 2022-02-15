@@ -1,6 +1,6 @@
 package io.github.oliviercailloux.jquestions;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import io.github.oliviercailloux.jquestions.entities.Question;
 import io.github.oliviercailloux.jquestions.entities.User;
@@ -42,12 +42,10 @@ public class Startup {
 		userService.persist(new User("Student-test", "test", User.STUDENT_ROLE));
 		userService.persist(new User("a", "a", User.STUDENT_ROLE));
 
-		final String q1ADoc = Resources.toString(getClass().getResource("q1.adoc"), StandardCharsets.UTF_8);
-		final Question question = questionParser.parse(q1ADoc);
-		questionService.persist(question);
-		final Question q2 = questionParser.parse(q1ADoc);
-		questionService.persist(q2);
+		final String examAsciiDoc = Resources.toString(getClass().getResource("Exam 1.adoc"), StandardCharsets.UTF_8);
+		final ImmutableSet<Question> questions = questionParser.parseQuestions(examAsciiDoc);
+		questions.forEach(questionService::persist);
 
-		examService.persist(ImmutableList.of(question, q2), "ep");
+		examService.persist(questions.asList(), "ep");
 	}
 }
