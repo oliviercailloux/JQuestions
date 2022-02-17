@@ -1,3 +1,3 @@
-web: java -jar target/quarkus-app/quarkus-run.jar
+web: java -jar target/jquestions-0.0.1-SNAPSHOT-runner.jar
 
 
