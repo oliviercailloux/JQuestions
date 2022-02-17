@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.github.oliviercailloux.jaris.exceptions.Unchecker;
 import io.github.oliviercailloux.jaris.xml.DomHelper;
+import io.github.oliviercailloux.jaris.xml.XmlToStringConfiguredTransformer;
 import io.github.oliviercailloux.publish.DocBookHelper;
 import java.io.IOException;
 import java.io.StringReader;
@@ -30,14 +31,30 @@ public class QuestionConverter {
 
 	private static final Unchecker<IOException, VerifyException> NO_IO = Unchecker.wrappingWith(VerifyException::new);
 
-	public static QuestionConverter instance(Asciidoctor asciidoctor) {
-		return new QuestionConverter(asciidoctor);
+	private static XmlToStringConfiguredTransformer getDocBookTransformer(DocBookHelper helper) throws IOException {
+		final String myStyle = Resources.toString(QuestionConverter.class.getResource("xhtml own.xsl"),
+				StandardCharsets.UTF_8);
+		final XmlToStringConfiguredTransformer docBookTransformer = helper
+				.getDocBookTransformer(new StreamSource(new StringReader(myStyle)));
+		return docBookTransformer;
+	}
+
+	public static QuestionConverter instance(Asciidoctor asciidoctor) throws IOException {
+		final DocBookHelper helper = DocBookHelper.usingDefaultFactory();
+		return new QuestionConverter(asciidoctor, helper, getDocBookTransformer(helper));
 	}
 
 	private final Asciidoctor asciidoctor;
 
-	private QuestionConverter(Asciidoctor asciidoctor) {
+	private final DocBookHelper helper;
+
+	private final XmlToStringConfiguredTransformer docBookTransformer;
+
+	private QuestionConverter(Asciidoctor asciidoctor, DocBookHelper docBookHelper,
+			XmlToStringConfiguredTransformer docBookTransformer) {
 		this.asciidoctor = checkNotNull(asciidoctor);
+		helper = checkNotNull(docBookHelper);
+		this.docBookTransformer = checkNotNull(docBookTransformer);
 	}
 
 	public String toXhtml(String phrasingAsciiDoc) {
@@ -45,20 +62,11 @@ public class QuestionConverter {
 				Options.builder().headerFooter(true).backend("docbook").build());
 		LOGGER.info("Generated DocBook: {}.", phrasingDocBook);
 		LOGGER.info("Validating DocBook.");
-		final DocBookHelper helper = DocBookHelper.usingDefaultFactory();
 		NO_IO.call(() -> helper.verifyValid(new StreamSource(new StringReader(phrasingDocBook))));
 		LOGGER.info("Converting DocBook.");
 //		final StreamSource localSource = new StreamSource(
 //				"file:///usr/share/xml/docbook/stylesheet/docbook-xsl-ns/xhtml5/docbook.xsl");
-		final String myStyle;
-		try {
-			myStyle = Resources.toString(getClass().getResource("xhtml own.xsl"), StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			throw new VerifyException(e);
-		}
-		final StreamSource phrasingDocBookSource = new StreamSource(new StringReader(phrasingDocBook));
-		final String phrasingXhtml = helper.getDocBookTransformer(new StreamSource(new StringReader(myStyle)))
-				.transform(phrasingDocBookSource);
+		final String phrasingXhtml = docBookTransformer.transform(new StreamSource(new StringReader(phrasingDocBook)));
 //		final String phrasingXhtml = helper.docBookTo(phrasingDocBookSource,
 //				DocBookHelper.TO_XHTML_STYLESHEET);
 //				localSource);

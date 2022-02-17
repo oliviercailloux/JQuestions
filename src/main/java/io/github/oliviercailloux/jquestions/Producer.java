@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jquestions;
 
+import java.io.IOException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
@@ -31,7 +32,7 @@ public class Producer {
 
 	@Produces
 	@ApplicationScoped
-	public QuestionConverter getConverter(Asciidoctor asciidoctor) {
+	public QuestionConverter getConverter(Asciidoctor asciidoctor) throws IOException {
 		LOGGER.debug("Producing QuestionConverter instance.");
 		final QuestionConverter instance = QuestionConverter.instance(asciidoctor);
 		return instance;
