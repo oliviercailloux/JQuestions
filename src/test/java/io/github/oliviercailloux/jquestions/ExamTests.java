@@ -83,14 +83,14 @@ public class ExamTests {
 			// final String answer = res.readEntity(String.class);
 			final List<Integer> questionIds = res.readEntity(new GenericType<List<Integer>>() {
 			});
-			assertEquals(2, questionIds.size());
+			assertEquals(6, questionIds.size());
 		}
 	}
 
 	@Test
 	void testAnswer() throws Exception {
 		final Client client = ClientBuilder.newClient();
-		final URI uri = UriBuilder.fromUri(serverUri).path("/v0/exam/answer/1").build();
+		final URI uri = UriBuilder.fromUri(serverUri).path("/v0/exam/1/answer/1").build();
 		final WebTarget target = client.target(uri).register(new Authenticator("Student-test", "test"));
 
 		try (Response res = target.request().buildGet().invoke()) {

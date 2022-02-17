@@ -28,7 +28,7 @@ public class QuestionTests {
 		final Client client = ClientBuilder.newClient();
 		final String response = client.target(target).register(new Authenticator("Admin", "adm"))
 				.request("text/asciidoc").buildGet().invoke(String.class);
-		assertTrue(response.contains(". First claim"));
+		assertTrue(response.contains(". 7"));
 	}
 
 	@Test
