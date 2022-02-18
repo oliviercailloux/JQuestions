@@ -1,8 +1,10 @@
 package io.github.oliviercailloux.jquestions;
 
 import com.google.common.collect.ImmutableSet;
+import io.github.oliviercailloux.jquestions.dao.AggregatedAnswersDao;
 import io.github.oliviercailloux.jquestions.entities.Answer;
 import io.github.oliviercailloux.jquestions.entities.User;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.security.RolesAllowed;
@@ -10,6 +12,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -51,6 +54,21 @@ public class ExamResource {
 	public String registerStudent(String examPassword) {
 		final User current = userService.getCurrent(securityContext);
 		return examService.registerStudent(current, examId, examPassword);
+	}
+
+	/**
+	 * TODO
+	 */
+	@POST
+	@RolesAllowed(User.ADMIN_ROLE)
+	@Path("/unregister")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.TEXT_PLAIN)
+	@Transactional
+	public Instant unregisterStudentAndDeleteAll(String username) {
+		final User student = userService.get(username).orElseThrow(NotFoundException::new);
+		examService.removeAllAnswers(student);
+		return examService.removeRegistration(student, examId);
 	}
 
 	/**
@@ -100,5 +118,15 @@ public class ExamResource {
 		final Optional<Answer> answer = examService.getAnswer(questionService.get(questionId),
 				userService.getCurrent(securityContext));
 		return answer.map(a -> Response.ok(a.getAdoptedClaims())).orElse(Response.noContent()).build();
+	}
+
+	@GET
+	@RolesAllowed(User.ADMIN_ROLE)
+	@Path("/aggregatedAnswers/{id}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	public AggregatedAnswersDao getAggregatedAdoptedClaims(@PathParam("id") int questionId) {
+		return examService.getAggregatedAnswers(questionService.get(questionId));
 	}
 }

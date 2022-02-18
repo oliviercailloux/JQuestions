@@ -19,7 +19,9 @@ import javax.persistence.UniqueConstraint;
 
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "student_id", "question_id" }) })
-@NamedQuery(name = "getFromStudentAndQuestion", query = "SELECT a FROM Answer a INNER JOIN a.student s INNER JOIN a.question q WHERE s = :student AND q = :question")
+@NamedQuery(name = "getAnswerFromStudentAndQuestion", query = "SELECT a FROM Answer a INNER JOIN a.student s INNER JOIN a.question q WHERE s = :student AND q = :question")
+@NamedQuery(name = "getAnswersFromStudent", query = "SELECT a FROM Answer a INNER JOIN a.student s WHERE s = :student")
+@NamedQuery(name = "getAnswersToQuestion", query = "SELECT a FROM Answer a INNER JOIN a.question q WHERE q = :question")
 public class Answer {
 
 	@Id

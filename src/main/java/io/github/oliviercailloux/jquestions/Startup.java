@@ -36,7 +36,7 @@ public class Startup {
 
 	@Transactional
 	public void loadAtStartup(@Observes StartupEvent evt) throws IOException {
-		LOGGER.info("Loading at startup, considering {}.", evt);
+		LOGGER.info("Loading at startup due to {}.", evt);
 
 		userService.persist(new User("Admin", "adm", User.ADMIN_ROLE));
 		userService.persist(new User("Student-test", "test", User.STUDENT_ROLE));

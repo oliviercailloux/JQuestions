@@ -3,9 +3,12 @@ package io.github.oliviercailloux.jquestions;
 import static com.google.common.base.Verify.verify;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MoreCollectors;
 import com.google.common.primitives.SignedBytes;
+import io.github.oliviercailloux.jquestions.dao.AggregatedAnswersDao;
 import io.github.oliviercailloux.jquestions.entities.Answer;
 import io.github.oliviercailloux.jquestions.entities.Exam;
 import io.github.oliviercailloux.jquestions.entities.ExamQuestion;
@@ -23,6 +26,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
@@ -116,15 +120,12 @@ public class ExamService {
 		return password;
 	}
 
+	@Transactional
 	public ImmutableSet<Integer> getQuestionIdsFor(int examId, User current, String personalPassword)
 			throws WebApplicationException {
 		final Exam exam = get(examId);
 
 		if (!current.getRole().equals(User.ADMIN_ROLE)) {
-			final Set<User> registeredStudents = exam.getRegisteredStudents();
-			if (!registeredStudents.contains(current)) {
-				throw new WebApplicationException(Response.Status.CONFLICT);
-			}
 			final Optional<StudentRegistration> registrationOpt = exam.getRegistration(current);
 			final StudentRegistration registration = registrationOpt
 					.orElseThrow(() -> new WebApplicationException(Response.Status.NOT_FOUND));
@@ -158,11 +159,60 @@ public class ExamService {
 		em.persist(newAnswer);
 	}
 
+	@Transactional
 	public Optional<Answer> getAnswer(Question question, User student) {
-		final List<Answer> answers = em.createNamedQuery("getFromStudentAndQuestion", Answer.class)
+		final List<Answer> answers = em.createNamedQuery("getAnswerFromStudentAndQuestion", Answer.class)
 				.setParameter("student", student).setParameter("question", question).getResultList();
 		verify(answers.size() <= 1, answers.toString());
 		return answers.stream().collect(MoreCollectors.toOptional());
+	}
+
+	@Transactional
+	public AggregatedAnswersDao getAggregatedAnswers(Question question) {
+		final List<Answer> answers = em.createNamedQuery("getAnswersToQuestion", Answer.class)
+				.setParameter("question", question).getResultList();
+		final ImmutableMultiset<Integer> countByClaim = answers.stream().flatMap(a -> a.getAdoptedClaims().stream())
+				.collect(ImmutableMultiset.toImmutableMultiset());
+
+		final ImmutableMap<String, Integer> countByClaimAsMap = countByClaim.elementSet().stream()
+				.collect(ImmutableMap.toImmutableMap(c -> c.toString(), countByClaim::count));
+		return new AggregatedAnswersDao(answers.size(), countByClaimAsMap);
+	}
+
+	@Transactional
+	public int removeAllAnswers(int examId, User student) {
+		final List<Answer> answers = em.createNamedQuery("getAnswersFromStudentAndExam", Answer.class)
+				.setParameter("student", student).setParameter("exam", examId).getResultList();
+		answers.forEach(em::remove);
+		return answers.size();
+	}
+
+	/**
+	 * TODO remove this method
+	 */
+	@Transactional
+	public int removeAllAnswers(User student) {
+		final List<Answer> answers = em.createNamedQuery("getAnswersFromStudent", Answer.class)
+				.setParameter("student", student).getResultList();
+		answers.forEach(em::remove);
+		return answers.size();
+	}
+
+	@Transactional
+	public Instant removeRegistration(User student, int exam) {
+		return removeRegistration(student, get(exam));
+	}
+
+	@Transactional
+	public Instant removeRegistration(User student, Exam exam) {
+		final List<StudentRegistration> registrations = em.createNamedQuery("get", StudentRegistration.class)
+				.setParameter("student", student).setParameter("exam", exam).getResultList();
+		verify(registrations.size() <= 1, registrations.toString());
+		final Optional<StudentRegistration> registrationOpt = registrations.stream()
+				.collect(MoreCollectors.toOptional());
+		final StudentRegistration registration = registrationOpt.orElseThrow(NotFoundException::new);
+		em.remove(registration);
+		return registration.getCreationTime();
 	}
 
 }

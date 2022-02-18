@@ -10,7 +10,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
 
+@NamedQuery(name = "get", query = "SELECT r FROM StudentRegistration r INNER JOIN r.user u INNER JOIN r.exam e WHERE u = :student AND e = :exam")
 @Entity
 public class StudentRegistration {
 	@Id
