@@ -26,7 +26,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
@@ -199,18 +199,19 @@ public class ExamService {
 	}
 
 	@Transactional
-	public Instant removeRegistration(User student, int exam) {
+	public Instant removeRegistration(User student, int exam) throws ClientErrorException {
 		return removeRegistration(student, get(exam));
 	}
 
 	@Transactional
-	public Instant removeRegistration(User student, Exam exam) {
+	public Instant removeRegistration(User student, Exam exam) throws ClientErrorException {
 		final List<StudentRegistration> registrations = em.createNamedQuery("get", StudentRegistration.class)
 				.setParameter("student", student).setParameter("exam", exam).getResultList();
 		verify(registrations.size() <= 1, registrations.toString());
 		final Optional<StudentRegistration> registrationOpt = registrations.stream()
 				.collect(MoreCollectors.toOptional());
-		final StudentRegistration registration = registrationOpt.orElseThrow(NotFoundException::new);
+		final StudentRegistration registration = registrationOpt
+				.orElseThrow(() -> new ClientErrorException("Not registered", Response.Status.CONFLICT));
 		em.remove(registration);
 		return registration.getCreationTime();
 	}

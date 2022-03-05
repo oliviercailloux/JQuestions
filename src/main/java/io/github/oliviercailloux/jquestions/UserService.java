@@ -35,8 +35,9 @@ public class UserService {
 	@Transactional
 	public Optional<User> get(String unencodedUsername) {
 		final Utf8StringAsBase64Sequence base64 = Utf8StringAsBase64Sequence.asBase64Sequence(unencodedUsername);
-		LOGGER.info("Searching for unencoded {}, thus encoded {}.", unencodedUsername, base64);
-		return get(base64);
+		final Optional<User> optional = get(base64);
+		LOGGER.info("Searched for unencoded {}, thus encoded {}, returning {}.", unencodedUsername, base64, optional);
+		return optional;
 	}
 
 	public Optional<User> get(Utf8StringAsBase64Sequence base64Username) {

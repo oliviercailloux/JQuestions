@@ -10,9 +10,9 @@ import java.util.Set;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -56,17 +56,16 @@ public class ExamResource {
 		return examService.registerStudent(current, examId, examPassword);
 	}
 
-	/**
-	 * TODO
-	 */
 	@POST
 	@RolesAllowed(User.ADMIN_ROLE)
 	@Path("/unregister")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.TEXT_PLAIN)
 	@Transactional
-	public Instant unregisterStudentAndDeleteAll(String username) {
-		final User student = userService.get(username).orElseThrow(NotFoundException::new);
+	public Instant unregisterStudentAndDeleteAll(String username) throws ClientErrorException {
+		LOGGER.debug("Request for unregistering {}.", username);
+		final User student = userService.get(username)
+				.orElseThrow(() -> new ClientErrorException("No such user", Response.Status.CONFLICT));
 		examService.removeAllAnswers(student);
 		return examService.removeRegistration(student, examId);
 	}

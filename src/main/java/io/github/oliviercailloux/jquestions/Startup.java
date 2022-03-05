@@ -42,10 +42,10 @@ public class Startup {
 		userService.persist(new User("Student-test", "test", User.STUDENT_ROLE));
 		userService.persist(new User("a", "a", User.STUDENT_ROLE));
 
-		final String examAsciiDoc = Resources.toString(getClass().getResource("Exam 1.adoc"), StandardCharsets.UTF_8);
+		final String examAsciiDoc = Resources.toString(getClass().getResource("Exam.adoc"), StandardCharsets.UTF_8);
 		final ImmutableSet<Question> questions = questionParser.parseQuestions(examAsciiDoc);
 		questions.forEach(questionService::persist);
 
-		examService.persist(questions.asList(), "ep");
+		examService.persist(questions.asList(), "epw");
 	}
 }
