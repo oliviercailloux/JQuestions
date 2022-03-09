@@ -2,13 +2,13 @@
 Consider a class declared as follows.
 
 [source, java]
----
+----
 package a.b;
 
 public class Something {
 	…
 }
----
+----
 
 Here are some claims about its name and about the name of the file that contains this declaration.
 Check every true claim.
@@ -36,7 +36,7 @@ Check every true claim.
 Consider the class `Something` declared as follows.
 
 [source, java]
----
+----
 package a.b;
 
 public class Something {
@@ -44,12 +44,12 @@ public class Something {
 		…
 	}
 }
----
+----
 
 You are now developing a class `Another`, declared as follows.
 
 [source, java]
----
+----
 package a.c;
 
 public class Another {
@@ -57,7 +57,7 @@ public class Another {
 		…
 	}
 }
----
+----
 
 How can you invoke, from the code in `proceed()`, the method `doSomething()` declared in the class `Something`?
 Check all the modifications that compile and that indeed permit to call `doSomething()` from `proceed()`.
@@ -80,7 +80,7 @@ Check all the modifications that compile and that indeed permit to call `doSomet
 Consider the following program.
 
 [source, java]
----
+----
 package a.c;
 
 public class SomeClass {
@@ -105,7 +105,7 @@ public class SomeClass {
 		SomeClass.proceed();
 	}
 }
----
+----
 
 Check every true claims about this program.
 
