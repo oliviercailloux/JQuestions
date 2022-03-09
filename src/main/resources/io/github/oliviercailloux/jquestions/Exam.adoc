@@ -1,109 +1,169 @@
 == Q
-How many arguments does the command `git config --global --add user.name My user name` contain?
+Consider a class declared as follows.
 
-. 0
-. 1
-. 2
-. 3
-. 4
-. 5
-. 6
-. [true-claim] 7
-. 8
-. 9
-. 10
-. 11
-. 12
+[source, java]
+---
+package a.b;
 
-== Q
-If the relative path `../c/` (relative to your current directory) designates the directory `/a/b/c/`, then which of the following paths possibly refer to your current directory?
+public class Something {
+	…
+}
+---
 
-. `/`
-. `/a/`
-. `/a/../`
-. `/a/../c/`
-. `/a/b/`
-. `/a/b/../`
-. [true-claim] `/a/b/c/`
-. [true-claim] `/a/b/c/../c/`
-. [true-claim] `/a/b/c/../d/`
-. `/a/b/c/a/`
-. [true-claim] `/a/b/c/a/../`
-. `/a/b/c/a/../c/`
-. `/a/b/c/d/`
-. `/a/c/../c/`
-. `/a/c/../d/`
+Here are some claims about its name and about the name of the file that contains this declaration.
+Check every true claim.
+
+. Its short name is `Something`
+. Its full name is `Something`
+. [true-claim] Its full name is `a.b.Something`
+. Its full name is `a/b/Something`
+. Its full name is `/a/b/Something`
+. Its file name is `Something.source`
+. [true-claim] Its file name is `Something.java`
+. Its file name is `Something.class`
+. The absolute path to the directory that contains its file is `/a/b/`
+. The absolute path to the directory that contains its file is `/packages/`
+. The absolute path to the directory that contains its file is `/packages/a/b/`
+. The absolute path to the directory that contains its file is `/source/`
+. The absolute path to the directory that contains its file is `/source/a/b/`
+. [true-claim] The absolute path to the directory that contains its file ends with `/a/b/`
+. The absolute path to the directory that contains its file ends with `/packages/`
+. The absolute path to the directory that contains its file ends with `/packages/a/b/`
+. The absolute path to the directory that contains its file ends with `/source/`
+. The absolute path to the directory that contains its file ends with `/source/a/b/`
 
 == Q
-Which _relative_ paths, relative to `/a/b/c/`, permit to designate the path `/a/b/c/d/e/`?
+Consider the class `Something` declared as follows.
 
-. `/a/b/c/`
-. `/a/b/c/d/e/`
-. `/a/b/c/ /d/e/`
-. `/a/b/d/e/`
-. `/a/b/../c/d/e/`
-. `/d/e/`
-. `/d/e/a/b/c/`
-. `/../c/d/e/`
-. `/d/e/`
-. `/d/../d/e/`
-. `/d/e/../a/b/c/d/e/`
-. `a/b/c/`
-. `a/b/c/d/e/`
-. `a/b/c/ /d/e/`
-. `a/b/d/e/`
-. `a/b/../c/d/e/`
-. [true-claim] `d/e/`
-. `d/e/a/b/c/`
-. [true-claim] `../c/d/e/`
-. [true-claim] `d/e/`
-. [true-claim] `d/../d/e/`
-. `d/e/../a/b/c/d/e/`
+[source, java]
+---
+package a.b;
+
+public class Something {
+	public static void doSomething() {
+		…
+	}
+}
+---
+
+You are now developing a class `Another`, declared as follows.
+
+[source, java]
+---
+package a.c;
+
+public class Another {
+	public static void proceed() {
+		…
+	}
+}
+---
+
+How can you invoke, from the code in `proceed()`, the method `doSomething()` declared in the class `Something`?
+Check all the modifications that compile and that indeed permit to call `doSomething()` from `proceed()`.
+(Check nothing if none of these suggests permit to invoke `doSomething()` in this context.)
+
+. Just use `a.b.doSomething();`
+. [true-claim] Just use `a.b.Something.doSomething();`
+. Just use `Something.doSomething();`
+. Add `import a.b;` then use `a.b.Something.doSomething();`
+. Add `import a.b;` then use `doSomething();`
+. Add `import a.b;` then use `Something.doSomething();`
+. Add `import Something;` then use `a.b.Something.doSomething();`
+. Add `import Something;` then use `doSomething();`
+. Add `import Something;` then use `Something.doSomething();`
+. [true-claim] Add `import a.b.Something;` then use `a.b.Something.doSomething();`
+. Add `import a.b.Something;` then use `doSomething();`
+. [true-claim] Add `import a.b.Something;` then use `Something.doSomething();`
 
 == Q
-Check every true claim, related to the structure of commits in a git repository.
+Consider the following program.
 
-. The structure is never a list, independently of the repository
-. [true-claim] The structure _may_ or may _not_ be a list, depending on the repository
-. The structure is guaranteed to be a list, independently of the repository
-. The structure is never a tree, independently of the repository
-. [true-claim] The structure _may_ or may _not_ be a tree, depending on the repository
-. The structure is guaranteed to be a tree, independently of the repository
-. The structure is never a directed graph, independently of the repository
-. The structure _may_ or may _not_ be a directed graph, depending on the repository
-. [true-claim] The structure is guaranteed to be a directed graph, independently of the repository
-. The structure is never a directed acyclic graph, independently of the repository
-. The structure _may_ or may _not_ be a directed acyclic graph, depending on the repository
-. [true-claim] The structure is guaranteed to be a directed acyclic graph, independently of the repository
-. [true-claim] The structure never contains directed cycles, independently of the repository
-. The structure _may_ or may _not_ contain directed cycles, depending on the repository
-. The structure is guaranteed to contain directed cycles, independently of the repository
+[source, java]
+---
+package a.c;
+
+public class SomeClass {
+	private static int a = 0;
+	private static int b = 0;
+	private static int c = 0;
+	
+	public static void init(int value) {
+		a = 3;
+		b = value;
+	}
+	
+	public static void proceed() {
+		c = 4;
+		System.out.println(a);
+		System.out.println(b);
+		System.out.println(c);
+	}
+	
+	public static void main(String[] args) {
+		SomeClass.init(42);
+		SomeClass.proceed();
+	}
+}
+---
+
+Check every true claims about this program.
+
+. It does not compile
+. It compiles, but stops executing before reaching the end of `main()`
+. [true-claim] It compiles and executes until reaching the end of `main()`
+. It prints `0` as a first statement
+. [true-claim] It prints `3` as a first statement
+. It prints `null` as a first statement
+. It prints `0` as a second statement
+. [true-claim] It prints `42` as a second statement
+. It prints `null` as a second statement
+. It prints `0` as a third statement
+. [true-claim] It prints `4` as a third statement
+. It prints `null` as a third statement
 
 == Q
-Assume that your git repository currently contains a commit `c` having a parent commit `b`, itself having a parent `a` (so that `a` was the first commit in your git repository). A branch `main` points to `b` and a branch `dev` points to `c`. The git-ref `HEAD` points to `main`. Assume that your index is not empty. Assume that you now commit. What results? Check every true claim.
+If the relative path `../something.txt` (relative to your current directory) designates the file `/home/yourself/somedir/somesubdir/something.txt`, then which absolute path does the relative path `../../another thing.txt` (relative to the same current directory) possibly designate? (Check every possible answer.)
 
-. `HEAD` points to `a`
-. `HEAD` points to `b`
-. `HEAD` points to `c`
-. [true-claim] `HEAD` still points to `main`
-. `HEAD` points to `dev`
-. `HEAD` points to a new commit having `a` as parent
-. `HEAD` points to a new commit having `b` as parent
-. `HEAD` points to a new commit having `c` as parent
-. `HEAD` is  “detached”
-. `main` points to `a`
-. `main` still points to `b`
-. `main` points to `c`
-. `main` points to `dev`
-. `main` points to `HEAD`
-. `main` points to a new commit having `a` as parent
-. [true-claim] `main` points to a new commit having `b` as parent
-. `main` points to a new commit having `c` as parent
-. `dev` points to `a`
-. `dev` points to `b`
-. [true-claim] `dev` still points to `c`
-. `dev` points to `main`
-. `dev` points to `HEAD`
-. `dev` points to a new commit having `a` as parent
-. `dev` points to a new commit having `b` as parent
-. `dev` points to a new commit having `c` as parent
+. `/something.txt`
+. `/./something.txt`
+. `/home/yourself/../../something.txt`
+. `/home/yourself/../something.txt`
+. `/home/./yourself/../something.txt`
+. `/home/yourself/something.txt`
+. `/home/yourself/somedir/something.txt`
+. `/home/yourself/./somedir/something.txt`
+. `/home/yourself/somedir/somesubdir/../../something.txt`
+. `/home/yourself/somedir/somesubdir/../something.txt`
+. `/home/yourself/somedir/./somesubdir/../something.txt`
+. `/home/yourself/somedir/somesubdir/something.txt`
+. `/home/yourself/somedir/somesubdir/something.txt/../../something.txt`
+. `/home/yourself/somedir/somesubdir/./something.txt/../../something.txt`
+. `/home/yourself/somedir/somesubdir/yetanothersubdir/something.txt`
+. `/home/yourself/somedir/yetanothersubdir/something.txt`
+. `/home/yourself/somedir/./yetanothersubdir/something.txt`
+. `/home/yourself/yetanothersubdir/../../something.txt`
+. `/home/yourself/yetanothersubdir/../something.txt`
+. `/home/yourself/./yetanothersubdir/../something.txt`
+. `/home/yourself/yetanothersubdir/something.txt`
+. `/another thing.txt`
+. `/./another thing.txt`
+. `/home/yourself/../../another thing.txt`
+. `/home/yourself/../another thing.txt`
+. `/home/./yourself/../another thing.txt`
+. `/home/yourself/another thing.txt`
+. [true-claim] `/home/yourself/somedir/another thing.txt`
+. [true-claim] `/home/yourself/./somedir/another thing.txt`
+. `/home/yourself/somedir/somesubdir/../../another thing.txt`
+. [true-claim] `/home/yourself/somedir/somesubdir/../another thing.txt`
+. [true-claim] `/home/yourself/somedir/./somesubdir/../another thing.txt`
+. `/home/yourself/somedir/somesubdir/another thing.txt`
+. [true-claim] `/home/yourself/somedir/somesubdir/another thing.txt/../../another thing.txt`
+. [true-claim] `/home/yourself/somedir/somesubdir/./another thing.txt/../../another thing.txt`
+. `/home/yourself/somedir/somesubdir/yetanothersubdir/another thing.txt`
+. `/home/yourself/somedir/yetanothersubdir/another thing.txt`
+. `/home/yourself/somedir/./yetanothersubdir/another thing.txt`
+. `/home/yourself/yetanothersubdir/../../another thing.txt`
+. `/home/yourself/yetanothersubdir/../another thing.txt`
+. `/home/yourself/./yetanothersubdir/../another thing.txt`
+. `/home/yourself/yetanothersubdir/another thing.txt`

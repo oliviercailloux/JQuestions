@@ -46,6 +46,6 @@ public class Startup {
 		final ImmutableSet<Question> questions = questionParser.parseQuestions(examAsciiDoc);
 		questions.forEach(questionService::persist);
 
-		examService.persist(questions.asList(), "epw");
+		examService.persist(questions.asList(), "zepw");
 	}
 }
