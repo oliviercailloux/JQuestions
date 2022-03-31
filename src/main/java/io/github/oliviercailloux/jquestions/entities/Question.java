@@ -1,10 +1,5 @@
 package io.github.oliviercailloux.jquestions.entities;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
-import com.google.common.base.MoreObjects;
 import java.util.Set;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -33,13 +28,11 @@ public class Question {
 	}
 
 	public Question(String asciiDocPhrasing, Set<Integer> trueClaims) {
-		this.asciiDocPhrasing = checkNotNull(asciiDocPhrasing);
-		this.trueClaims = checkNotNull(trueClaims);
-		checkArgument(trueClaims.stream().allMatch(i -> i >= 1));
+		this.asciiDocPhrasing = asciiDocPhrasing;
+		this.trueClaims = trueClaims;
 	}
 
 	public int getId() {
-		checkState(id != 0);
 		return id;
 	}
 
@@ -49,11 +42,5 @@ public class Question {
 
 	public Set<Integer> getTrueClaims() {
 		return trueClaims;
-	}
-
-	@Override
-	public String toString() {
-		return MoreObjects.toStringHelper(this).add("id", id).add("asciiDocPhrasing", asciiDocPhrasing)
-				.add("trueClaims", trueClaims).toString();
 	}
 }
