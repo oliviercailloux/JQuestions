@@ -129,7 +129,7 @@ public class ExamService {
 			final Optional<StudentRegistration> registrationOpt = exam.getRegistration(current);
 			final StudentRegistration registration = registrationOpt
 					.orElseThrow(() -> new WebApplicationException(Response.Status.NOT_FOUND));
-			if (!registration.getPersonalExamPassword().equals(personalPassword)) {
+			if (!registration.getJwtId().equals(personalPassword)) {
 				throw new WebApplicationException(Response.Status.NOT_FOUND);
 			}
 		}

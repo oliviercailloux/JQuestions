@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableSet;
 import io.github.oliviercailloux.wutils.Authenticator;
+import io.github.oliviercailloux.wutils.AuthenticatorJwt;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import javax.ws.rs.client.Client;
@@ -18,6 +20,10 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import org.jose4j.jwa.AlgorithmConstraints;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -68,23 +74,41 @@ public class ExamTests {
 		final Client client = ClientBuilder.newClient();
 		final URI target = UriBuilder.fromUri(serverUri).path("/v0/exam/1/list").build();
 
-		try (Response res = client.target(target).request().buildGet().invoke()) {
+		JwtClaims claims = new JwtClaims();
+		claims.setIssuer("Issuer"); // who creates the token and signs it
+		claims.setAudience("Audience"); // to whom the token is intended to be sent
+		claims.setExpirationTimeMinutesInTheFuture(10); // time when the token will expire (10 minutes from now)
+		claims.setGeneratedJwtId(); // a unique identifier for the token
+		claims.setIssuedAtToNow(); // when the token was issued/created (now)
+		claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
+		claims.setSubject("subject"); // the subject/principal is whom the token is about
+		claims.setClaim("email", "mail@example.com"); // additional claims/attributes about the subject can be added
+		List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
+		claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
+//	    claims.toJson();
+
+		JsonWebSignature jws = new JsonWebSignature();
+		jws.setAlgorithmConstraints(AlgorithmConstraints.NO_CONSTRAINTS);
+		jws.setPayload(claims.toJson());
+		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.NONE);
+
+		try (Response res = client.target(target).register(new AuthenticatorJwt(jws)).request().buildGet().invoke()) {
 			assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), res.getStatus());
 		}
 
-		try (Response res = client.target(target).register(new Authenticator("Admin", "wrong password")).request()
-				.buildGet().invoke()) {
-			assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), res.getStatus());
-		}
-
-		try (Response res = client.target(target).register(new Authenticator("Admin", "adm")).request().buildGet()
-				.invoke()) {
-			assertEquals(Response.Status.OK.getStatusCode(), res.getStatus());
-			// final String answer = res.readEntity(String.class);
-			final List<Integer> questionIds = res.readEntity(new GenericType<List<Integer>>() {
-			});
-			assertEquals(6, questionIds.size());
-		}
+//		try (Response res = client.target(target).register(new Authenticator("Admin", "wrong password")).request()
+//				.buildGet().invoke()) {
+//			assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), res.getStatus());
+//		}
+//
+//		try (Response res = client.target(target).register(new Authenticator("Admin", "adm")).request().buildGet()
+//				.invoke()) {
+//			assertEquals(Response.Status.OK.getStatusCode(), res.getStatus());
+//			// final String answer = res.readEntity(String.class);
+//			final List<Integer> questionIds = res.readEntity(new GenericType<List<Integer>>() {
+//			});
+//			assertEquals(6, questionIds.size());
+//		}
 	}
 
 	@Test

@@ -24,6 +24,17 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Users that this server authenticates OR are referred to by other entities
+ * (have non-default permissions, have answers…). Ideally we’d get rid of
+ * passwords and authenticate them using an external server; then this class
+ * would contain only users that are referred to by some other entities, and
+ * users would not need to be added or removed explicitly.
+ * </p>
+ * The mere presence in this table as a student does not give any right (unless
+ * linked with permissions). Therefore, there is no point in removing a student
+ * from here.
+ */
 @Entity
 @UserDefinition
 @NamedQuery(name = "getBase64User", query = "SELECT u FROM User u WHERE u.usernameUtf8ThenBase64Encoded = :username")
@@ -48,7 +59,6 @@ public class User {
 
 	@Password
 	@NotNull
-	@Column(unique = true)
 	@JsonIgnore
 	String passwordUtf8ThenBase64EncodedThenEncrypted;
 
@@ -73,8 +83,7 @@ public class User {
 	private User(String username, String password, String role, Optional<Instant> firstPostTime) {
 		this.usernameUtf8ThenBase64Encoded = Utf8StringAsBase64Sequence.asBase64Sequence(username).toString();
 		LOGGER.debug("Username {} stored as {}.", username, this.usernameUtf8ThenBase64Encoded);
-		final String passwordUtf8ThenBase64Encoded = Utf8StringAsBase64Sequence.asBase64Sequence(password).toString();
-		this.passwordUtf8ThenBase64EncodedThenEncrypted = BcryptUtil.bcryptHash(passwordUtf8ThenBase64Encoded);
+		setPassword(password);
 		this.role = checkNotNull(role);
 		this.firstPostTime = checkNotNull(firstPostTime).orElse(null);
 		if (firstPostTime.isPresent()) {
@@ -93,6 +102,11 @@ public class User {
 
 	public Optional<Instant> getFirstPostTime() {
 		return Optional.ofNullable(firstPostTime);
+	}
+
+	public void setPassword(String password) {
+		final String passwordUtf8ThenBase64Encoded = Utf8StringAsBase64Sequence.asBase64Sequence(password).toString();
+		this.passwordUtf8ThenBase64EncodedThenEncrypted = BcryptUtil.bcryptHash(passwordUtf8ThenBase64Encoded);
 	}
 
 	@Override

@@ -78,4 +78,8 @@ public class Exam {
 		registeredStudents.add(registration);
 	}
 
+	public String guid() {
+		return String.valueOf(id);
+	}
+
 }

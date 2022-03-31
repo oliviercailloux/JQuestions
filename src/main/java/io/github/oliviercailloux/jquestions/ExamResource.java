@@ -7,6 +7,7 @@ import io.github.oliviercailloux.jquestions.entities.User;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -76,11 +77,13 @@ public class ExamResource {
 	 * https://github.com/whatwg/fetch/issues/83.
 	 */
 	@GET
-	@RolesAllowed({ User.ADMIN_ROLE, User.STUDENT_ROLE })
+	@PermitAll
 	@Path("/list")
 	@Produces({ MediaType.APPLICATION_JSON })
+//	@HelloBinding
 	@Transactional
 	public ImmutableSet<Integer> getQuestionIds(@QueryParam("personal") String personalPassword) {
+		LOGGER.info("Security context: {}, principal: {}.", securityContext, securityContext.getUserPrincipal());
 		LOGGER.debug("Got request to list, with password {}.", personalPassword);
 		final User current = userService.getCurrent(securityContext);
 		return examService.getQuestionIdsFor(examId, current, personalPassword);
